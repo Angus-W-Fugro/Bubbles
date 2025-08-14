@@ -53,6 +53,7 @@ def process_video(video_path):
     show_size_filtered = False
     show_delta_filtered = False
     show_original = True
+    frame_delay = 10
 
     min_size = 7
     max_size = 30
@@ -61,6 +62,8 @@ def process_video(video_path):
     cv2.setWindowProperty('Display', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     prev_rects = []
+
+    bubble_diameter_sum_per_frame = []
 
     while True:
         ret, original_frame = cap.read()
@@ -75,7 +78,6 @@ def process_video(video_path):
 
         rects = []
 
-        bubble_diameter_sum_per_frame = []
         bubble_diameter_sum = 0
 
         for contour in contours:
@@ -130,7 +132,9 @@ def process_video(video_path):
             combined_frame = cv2.addWeighted(overlay_frame, 1, foreground_frame_bgr, 1, 0)
 
         bubble_diameter_sum_per_frame.append(bubble_diameter_sum)
-        window_size = 100
+        fps = 30
+        window_size_seconds = 1
+        window_size = fps * window_size_seconds
         moving_average = np.mean(bubble_diameter_sum_per_frame[-window_size:]) if len(bubble_diameter_sum_per_frame) > window_size else bubble_diameter_sum
 
         text = f"Bubble diameter (px): {int(moving_average)}"
@@ -143,7 +147,7 @@ def process_video(video_path):
 
         cv2.imshow('Display', combined_frame)
 
-        key = cv2.waitKey(25)
+        key = cv2.waitKey(frame_delay)
         
         if key == 27: # esc
             exit(0)
@@ -168,9 +172,9 @@ def crop_video(video_path, from_seconds):
     out.release()
 
 def main():
-    # video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
+    video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
     # video_path = "output_2.mp4"
-    video_path = "C:/Users/a.warman/Downloads/12P_PYA_XNA MLC Bubbles.mp4" + "cropped.mp4"
+    # video_path = "C:/Users/a.warman/Downloads/12P_PYA_XNA MLC Bubbles.mp4" + "cropped.mp4"
     # crop_video(video_path, 30)
     process_video(video_path)
 
