@@ -48,34 +48,47 @@ def process_video(video_path):
         return
     
     bubble_color = (0, 0, 255)
+    filtered_color = (0, 255, 0)
+
+    show_filtered = True
+
     min_size = 5
     max_size = 100
 
+    cv2.namedWindow('Display', cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty('Display', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
     while True:
-        ret, original_frame = cap.read()
+        ret, frame = cap.read()
         if not ret:
             print("End of video or error reading frame.")
             break
 
-        foreground_frame = backSub.apply(original_frame)
+        foreground_frame = backSub.apply(frame)
         contours, _ = cv2.findContours(foreground_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+        blank_frame = np.zeros_like(frame)
 
         for contour in contours:
             area = cv2.contourArea(contour)
 
-            if area < min_size or area > max_size:
+            filtered = area < min_size or area > max_size
+
+            if filtered and not show_filtered:
                 continue
+
+            color = filtered_color if filtered else bubble_color
 
             x, y, w, h = cv2.boundingRect(contour)
             center = (x + w // 2, y + h // 2)
             radius = max(w, h) // 2
-            cv2.circle(original_frame, center, radius, bubble_color, 2)
-            
-        foreground_frame = original_frame
+            cv2.circle(blank_frame, center, radius, color, 1)
 
-        cv2.imshow('Frame', foreground_frame)
-        key = cv2.waitKey(100)
+        combined_frame = cv2.addWeighted(blank_frame, 1, cv2.cvtColor(foreground_frame, cv2.COLOR_GRAY2BGR), 1, 0)
+        cv2.imshow('Display', combined_frame)
+
+        key = cv2.waitKey(300)
         
         if key == 27: # esc
             exit(0)
