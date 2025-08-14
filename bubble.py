@@ -124,7 +124,7 @@ def process_video(video_path):
 
         cv2.imshow('Display', combined_frame)
 
-        key = cv2.waitKey(1)
+        key = cv2.waitKey(25)
         
         if key == 27: # esc
             exit(0)
