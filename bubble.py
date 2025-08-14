@@ -51,7 +51,7 @@ def process_video(video_path):
     filtered_color = (0, 255, 0)
 
     show_filtered = False
-    show_original = False
+    show_original = True
 
     min_size = 150
     max_size = 1700
@@ -84,7 +84,7 @@ def process_video(video_path):
             else:
                 color = target_color
 
-            cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, 1)
+            cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, 2)
 
         if show_original:
             combined_frame = cv2.addWeighted(overlay_frame, 1, original_frame, 1, 0)
