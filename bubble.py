@@ -38,36 +38,43 @@ def split_frames_into_6_videos(video_path):
 def process_video(video_path):
     cap = cv2.VideoCapture(video_path)
     stabilizer = VidStab()
-    threshold = 200
+    threshold = 100
     history = 500
-    playback_speed = 0.75
+
     backSub = cv2.createBackgroundSubtractorMOG2(varThreshold=threshold, history=history, detectShadows=False)
-    # playback = int(1000 / (cap.get(cv2.CAP_PROP_FPS) * playback_speed))
     
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
     
+    bubble_color = (0, 0, 255)
+    min_size = 10
+    max_size = 100
+
     while True:
         ret, original_frame = cap.read()
         if not ret:
             print("End of video or error reading frame.")
             break
 
-        frame = backSub.apply(original_frame)
+        foreground_frame = backSub.apply(original_frame)
+        contours, _ = cv2.findContours(foreground_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
-        num_contours = 25
-        contours, _ = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:num_contours]
+        for contour in contours:
+            area = cv2.contourArea(contour)
 
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
+            if area < min_size or area > max_size:
+                continue
+
+            x, y, w, h = cv2.boundingRect(contour)
             center = (x + w // 2, y + h // 2)
             radius = max(w, h) // 2
-            cv2.circle(original_frame, center, radius, (0, 0, 255), 2)
-        frame = original_frame
+            cv2.circle(original_frame, center, radius, bubble_color, 2)
+            
+        foreground_frame = original_frame
 
-        cv2.imshow('Frame', frame)
+        cv2.imshow('Frame', foreground_frame)
         key = cv2.waitKey(100)
         
         if key == 27: # esc
