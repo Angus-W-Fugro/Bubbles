@@ -18,7 +18,10 @@ def main():
         fg_mask = backSub.apply(frame)
         
         # Display the frame
-        cv2.imshow('Video Frame', fg_mask)
+
+        overlay_weighting = 0.8
+        combined = cv2.addWeighted(frame, 1 - overlay_weighting, cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR), overlay_weighting, 0)
+        cv2.imshow('Combined Frame', combined)
         
         # Wait for 1 ms and check if 'q' is pressed to exit
         if cv2.waitKey(1) & 0xFF == ord('q'):
