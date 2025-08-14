@@ -3,7 +3,7 @@ import cv2
 def main():
     video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
     cap = cv2.VideoCapture(video_path)
-    backSub = cv2.createBackgroundSubtractorMOG2()
+    backSub = cv2.createBackgroundSubtractorMOG2(varThreshold=100, detectShadows=False)
     
     if not cap.isOpened():
         print("Error: Could not open video.")
