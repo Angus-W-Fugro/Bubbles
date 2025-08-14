@@ -54,6 +54,7 @@ def process_video(video_path):
     show_delta_filtered = False
     show_original = True
     frame_delay = 10
+    highlight_thickness = 2
 
     min_size = 7
     max_size = 30
@@ -117,7 +118,7 @@ def process_video(video_path):
                 color = target_color
 
             if show_delta_filtered or not delta_filtered:
-                cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, 2)
+                cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, highlight_thickness)
 
             if not delta_filtered:
                 diameter = (w + h) / 2
@@ -136,8 +137,10 @@ def process_video(video_path):
         window_size_seconds = 1
         window_size = fps * window_size_seconds
         moving_average = np.mean(bubble_diameter_sum_per_frame[-window_size:]) if len(bubble_diameter_sum_per_frame) > window_size else bubble_diameter_sum
+        current_value = moving_average
+        # current_value = bubble_diameter_sum
 
-        text = f"Bubble diameter (px): {int(moving_average)}"
+        text = f"Bubble diameter (px): {int(current_value)}"
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 1
         thickness = 2
@@ -172,9 +175,9 @@ def crop_video(video_path, from_seconds):
     out.release()
 
 def main():
-    video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
+    # video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
     # video_path = "output_2.mp4"
-    # video_path = "C:/Users/a.warman/Downloads/12P_PYA_XNA MLC Bubbles.mp4" + "cropped.mp4"
+    video_path = "C:/Users/a.warman/Downloads/12P_PYA_XNA MLC Bubbles.mp4" + "cropped.mp4"
     # crop_video(video_path, 30)
     process_video(video_path)
 
