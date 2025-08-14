@@ -53,7 +53,7 @@ def process_video(video_path):
     show_size_filtered = False
     show_delta_filtered = False
     show_original = True
-    frame_delay = 10
+    frame_delay = 15
     highlight_thickness = 2
 
     min_size = 7
@@ -112,6 +112,10 @@ def process_video(video_path):
                 if dy < 5 or abs(dx) > abs(dy):
                     delta_filtered = True
 
+            # vapourware filter
+            if x < 900 or x > 1500:
+                delta_filtered = True
+
             if delta_filtered:
                 color = filtered_color
             else:
@@ -147,6 +151,10 @@ def process_video(video_path):
         color = (0, 0, 255)  # Red in BGR
 
         cv2.putText(combined_frame, text, (20, 900), font, font_scale, color, thickness, cv2.LINE_AA)
+
+        flow_rate_lph = current_value * 0.001 * fps * 3.6  # 0.1 ml per pixel, fps frames/sec, 3.6 to convert ml/sec to L/hr
+        flow_text = f"Flow rate (L/hr): {flow_rate_lph:.2f}"
+        cv2.putText(combined_frame, flow_text, (20, 950), font, font_scale, color, thickness, cv2.LINE_AA)
 
         cv2.imshow('Display', combined_frame)
 
