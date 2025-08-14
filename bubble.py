@@ -51,7 +51,7 @@ def process_video(video_path):
     filtered_color = (0, 255, 0)
 
     show_filtered = False
-    show_original = True
+    show_original = False
 
     min_size = 150
     max_size = 1700
@@ -89,7 +89,8 @@ def process_video(video_path):
         if show_original:
             combined_frame = cv2.addWeighted(overlay_frame, 1, original_frame, 1, 0)
         else:
-            combined_frame = cv2.addWeighted(overlay_frame, 1, foreground_frame, 1, 0)
+            foreground_frame_bgr = cv2.cvtColor(foreground_frame, cv2.COLOR_GRAY2BGR)
+            combined_frame = cv2.addWeighted(overlay_frame, 1, foreground_frame_bgr, 1, 0)
 
         cv2.imshow('Display', combined_frame)
 
