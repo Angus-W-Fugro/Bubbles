@@ -48,7 +48,7 @@ def process_video(video_path):
         return
     
     bubble_color = (0, 0, 255)
-    min_size = 10
+    min_size = 5
     max_size = 100
 
     while True:
