@@ -50,7 +50,8 @@ def process_video(video_path):
     target_color = (0, 0, 255)
     filtered_color = (0, 255, 0)
 
-    show_filtered = False
+    show_size_filtered = False
+    show_delta_filtered = False
     show_original = True
 
     min_size = 150
@@ -58,6 +59,8 @@ def process_video(video_path):
 
     cv2.namedWindow('Display', cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty('Display', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+    prev_rects = []
 
     while True:
         ret, original_frame = cap.read()
@@ -70,21 +73,48 @@ def process_video(video_path):
 
         overlay_frame = np.zeros_like(original_frame)
 
+        rects = []
+
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             area = w * h
 
-            filtered = area < min_size or area > max_size
+            size_filtered = area < min_size or area > max_size
 
-            if filtered and not show_filtered:
+            if not show_size_filtered and size_filtered:
                 continue
 
-            if filtered:
+            rects.append((x, y, w, h))
+
+            delta_filtered = False
+
+            # Find the closest rectangle in prev_rects to the current rect
+            if prev_rects:
+                distances = [np.hypot(x - px, y - py) for px, py, pw, ph in prev_rects]
+                min_dist_idx = int(np.argmin(distances))
+                closest_rect = prev_rects[min_dist_idx]
+                # closest_rect is (px, py, pw, ph)
+            else:
+                closest_rect = None
+
+            if closest_rect:
+                cx, cy = x + w // 2, y + h // 2
+                pcx, pcy = closest_rect[0] + closest_rect[2] // 2, closest_rect[1] + closest_rect[3] // 2
+                dx = pcx - cx 
+                dy = pcy - cy
+
+                if dy < 5 or abs(dx) > abs(dy):
+                    delta_filtered = True
+
+            if delta_filtered:
                 color = filtered_color
             else:
                 color = target_color
 
-            cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, 2)
+            if show_delta_filtered or not delta_filtered:
+                cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, 2)
+        
+        prev_rects = rects
 
         if show_original:
             combined_frame = cv2.addWeighted(overlay_frame, 1, original_frame, 1, 0)
