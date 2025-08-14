@@ -47,55 +47,81 @@ def process_video(video_path):
         print("Error: Could not open video.")
         return
     
-    bubble_color = (0, 0, 255)
+    target_color = (0, 0, 255)
     filtered_color = (0, 255, 0)
 
-    show_filtered = True
+    show_filtered = False
+    show_original = True
 
-    min_size = 5
-    max_size = 100
+    min_size = 150
+    max_size = 1700
 
     cv2.namedWindow('Display', cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty('Display', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     while True:
-        ret, frame = cap.read()
+        ret, original_frame = cap.read()
         if not ret:
             print("End of video or error reading frame.")
             break
 
-        foreground_frame = backSub.apply(frame)
+        foreground_frame = backSub.apply(original_frame)
         contours, _ = cv2.findContours(foreground_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
-        blank_frame = np.zeros_like(frame)
+        overlay_frame = np.zeros_like(original_frame)
 
         for contour in contours:
-            area = cv2.contourArea(contour)
+            x, y, w, h = cv2.boundingRect(contour)
+            area = w * h
 
             filtered = area < min_size or area > max_size
 
             if filtered and not show_filtered:
                 continue
 
-            color = filtered_color if filtered else bubble_color
+            if filtered:
+                color = filtered_color
+            else:
+                color = target_color
 
-            x, y, w, h = cv2.boundingRect(contour)
-            center = (x + w // 2, y + h // 2)
-            radius = max(w, h) // 2
-            cv2.circle(blank_frame, center, radius, color, 1)
+            cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, 1)
 
-        combined_frame = cv2.addWeighted(blank_frame, 1, cv2.cvtColor(foreground_frame, cv2.COLOR_GRAY2BGR), 1, 0)
+        if show_original:
+            combined_frame = cv2.addWeighted(overlay_frame, 1, original_frame, 1, 0)
+        else:
+            combined_frame = cv2.addWeighted(overlay_frame, 1, foreground_frame, 1, 0)
+
         cv2.imshow('Display', combined_frame)
 
-        key = cv2.waitKey(300)
+        key = cv2.waitKey(1)
         
         if key == 27: # esc
             exit(0)
 
+def crop_video(video_path, from_seconds):
+    cap = cv2.VideoCapture(video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    start_frame = int(from_seconds * fps)
+
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(video_path + 'cropped.mp4', fourcc, fps, (int(cap.get(3)), int(cap.get(4))))
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        out.write(frame)
+
+    cap.release()
+    out.release()
+
 def main():
-    video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
+    # video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
     # video_path = "output_2.mp4"
+    video_path = "C:/Users/a.warman/Downloads/12P_PYA_XNA MLC Bubbles.mp4" + "cropped.mp4"
+    # crop_video(video_path, 30)
     process_video(video_path)
 
 if __name__ == "__main__":
