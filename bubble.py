@@ -93,7 +93,6 @@ def process_video(video_path):
                 distances = [np.hypot(x - px, y - py) for px, py, pw, ph in prev_rects]
                 min_dist_idx = int(np.argmin(distances))
                 closest_rect = prev_rects[min_dist_idx]
-                # closest_rect is (px, py, pw, ph)
             else:
                 closest_rect = None
 
