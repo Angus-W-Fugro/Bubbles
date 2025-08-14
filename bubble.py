@@ -54,7 +54,7 @@ def process_video(video_path):
     show_delta_filtered = False
     show_original = True
 
-    min_size = 8
+    min_size = 7
     max_size = 30
 
     cv2.namedWindow('Display', cv2.WND_PROP_FULLSCREEN)
