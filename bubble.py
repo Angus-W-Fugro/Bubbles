@@ -75,6 +75,8 @@ def process_video(video_path):
 
         rects = []
 
+        bubble_diameter_sum = 0
+
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             area = w * h
@@ -112,6 +114,10 @@ def process_video(video_path):
 
             if show_delta_filtered or not delta_filtered:
                 cv2.rectangle(overlay_frame, (x, y), (x + w, y + h), color, 2)
+
+            if not delta_filtered:
+                diameter = (w + h) / 2
+                bubble_diameter_sum += diameter
         
         prev_rects = rects
 
@@ -120,6 +126,15 @@ def process_video(video_path):
         else:
             foreground_frame_bgr = cv2.cvtColor(foreground_frame, cv2.COLOR_GRAY2BGR)
             combined_frame = cv2.addWeighted(overlay_frame, 1, foreground_frame_bgr, 1, 0)
+
+
+        text = f"Bubble diameter (px): {int(bubble_diameter_sum)}"
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1
+        thickness = 2
+        color = (0, 0, 255)  # Red in BGR
+
+        cv2.putText(combined_frame, text, (20, 900), font, font_scale, color, thickness, cv2.LINE_AA)
 
         cv2.imshow('Display', combined_frame)
 
