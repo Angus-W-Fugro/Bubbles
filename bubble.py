@@ -54,34 +54,28 @@ def process_video(video_path):
             print("End of video or error reading frame.")
             break
 
-        foreground_frame = backSub.apply(original_frame)
+        frame = backSub.apply(original_frame)
 
-        # Remove every pixel that is not next to another pixel of the same colour
+        num_contours = 25
+        contours, _ = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:num_contours]
 
-        # Pad the frame to handle edge pixels
-        padded = np.pad(foreground_frame, ((1, 1), (1, 1)), mode='constant', constant_values=0)
-        output = np.zeros_like(foreground_frame)
+        for cnt in contours:
+            x, y, w, h = cv2.boundingRect(cnt)
+            center = (x + w // 2, y + h // 2)
+            radius = max(w, h) // 2
+            cv2.circle(original_frame, center, radius, (0, 0, 255), 2)
+        frame = original_frame
 
-        for y in range(1, padded.shape[0] - 1):
-            for x in range(1, padded.shape[1] - 1):
-                pixel = padded[y, x]
-                neighbors = [
-                    padded[y-1, x], padded[y+1, x], padded[y, x-1], padded[y, x+1]
-                ]
-                if any(pixel == n for n in neighbors):
-                    output[y-1, x-1] = pixel
-
-        foreground_frame = output
-
-        cv2.imshow('Frame', foreground_frame)
-        key = cv2.waitKey(1)
+        cv2.imshow('Frame', frame)
+        key = cv2.waitKey(100)
         
         if key == 27: # esc
             exit(0)
 
 def main():
-    # video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
-    video_path = "output_2.mp4"
+    video_path = "C:/Users/a.warman/Downloads/vlc-record-2025-06-18-11h57m52s-12P_PYA_XNA_CON_MLC-10_2022-U_001_22-09-29_01-13-44_000.mp4-.mp4"
+    # video_path = "output_2.mp4"
     process_video(video_path)
 
 if __name__ == "__main__":
