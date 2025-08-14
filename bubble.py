@@ -75,6 +75,7 @@ def process_video(video_path):
 
         rects = []
 
+        bubble_diameter_sum_per_frame = []
         bubble_diameter_sum = 0
 
         for contour in contours:
@@ -127,8 +128,11 @@ def process_video(video_path):
             foreground_frame_bgr = cv2.cvtColor(foreground_frame, cv2.COLOR_GRAY2BGR)
             combined_frame = cv2.addWeighted(overlay_frame, 1, foreground_frame_bgr, 1, 0)
 
+        bubble_diameter_sum_per_frame.append(bubble_diameter_sum)
+        window_size = 100
+        moving_average = np.mean(bubble_diameter_sum_per_frame[-window_size:]) if len(bubble_diameter_sum_per_frame) > window_size else bubble_diameter_sum
 
-        text = f"Bubble diameter (px): {int(bubble_diameter_sum)}"
+        text = f"Bubble diameter (px): {int(moving_average)}"
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 1
         thickness = 2
