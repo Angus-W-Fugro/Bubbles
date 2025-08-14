@@ -54,8 +54,8 @@ def process_video(video_path):
     show_delta_filtered = False
     show_original = True
 
-    min_size = 150
-    max_size = 1700
+    min_size = 8
+    max_size = 30
 
     cv2.namedWindow('Display', cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty('Display', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
@@ -80,9 +80,10 @@ def process_video(video_path):
 
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            area = w * h
+            max_dimension = max(w, h)
+            min_dimension = min(w, h)
 
-            size_filtered = area < min_size or area > max_size
+            size_filtered = min_dimension < min_size or max_dimension > max_size
 
             if not show_size_filtered and size_filtered:
                 continue
